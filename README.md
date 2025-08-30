@@ -2,9 +2,9 @@
 
 ## Document History
 
-| Date | Version | Description | Author                 |
-| ---- |---------| ----------- |------------------------|
-| 2023-09-01 | 0.0     | Initial version | I Putu Mahendra Wijaya |
+| Date       | Version | Description | Author                 |
+|------------|---------| ----------- |------------------------|
+| 2025-08-30 | 0.0     | Initial version | I Putu Mahendra Wijaya |
 
 ---
 

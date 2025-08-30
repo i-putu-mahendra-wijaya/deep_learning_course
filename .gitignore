@@ -1,3 +1,7 @@
 .idea/
 .cadence/
 venv_*/
+
+# ignore all media output
+**/*.png
+**/*.mp4

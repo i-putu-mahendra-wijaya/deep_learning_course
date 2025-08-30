@@ -17,7 +17,7 @@ Make a video (example using ffmpeg) from the PNGs:
 ffmpeg -r 30 -i frames_xor/frame_%04d.png -pix_fmt yuv420p xor_training.mp4
 """
 
-from typing import Tuple, Any, Generator, Dict
+from typing import Tuple, Any, Generator, Dict, List
 
 import os
 import argparse
@@ -133,7 +133,7 @@ class TinyMLP:
         A1: np.ndarray = tanh(Z1)
         Z2: np.ndarray = np.dot(A1, self.W2) + self.b2
         A2: np.ndarray = sigmoid(Z2)
-        return Z1, A1, Z2, A2
+        return A2, Z1, A1, Z2
 
 
     def loss_bce(
@@ -171,7 +171,7 @@ class TinyMLP:
         :return:
         """
 
-        a2, z1, a1, z2 = cache
+        z1, a1, z2, a2 = cache
         N = X.shape[0]
 
         # Output layer gradient
@@ -211,3 +211,152 @@ class TinyMLP:
         self.b1 -= learning_rate * grads["db1"]
         self.W2 -= learning_rate * grads["dw2"]
         self.b2 -= learning_rate * grads["db2"]
+
+
+# ----------------------------------
+# Plotting per-epoch frame
+# ----------------------------------
+
+def plot_frame (
+    epoch: int,
+    losses: List[float],
+    X: np.ndarray,
+    y: np.ndarray,
+    model: Any,
+    outdir: Path,
+    seed_used: int,
+    grid_lim: float = 1.5,
+) -> None:
+
+    # Prepare decision boundary
+    def forward_only(
+            input_data
+    ) -> Tuple:
+        return model.forward(input_data)[0], *model.forward(input_data)[1:]
+
+    xx, yy, zz = decision_boundary(forward_only, grid_lim=grid_lim, steps=200)
+
+    # Forward on training points for overlay
+    yhat, _, _, _ = model.forward(X)
+
+    fig = plt.figure(figsize=(12, 8))
+    fig.suptitle(f"Epoch {epoch} - Seed: {seed_used}", fontsize=14)
+
+    # 1) Loss curve
+    ax1 = plt.subplot2grid((2, 3), (0, 0))
+    ax1.plot(np.arange(len(losses)), losses)
+    ax1.set_title("Loss (BCE)")
+    ax1.set_xlabel("Epoch")
+    ax1.set_ylabel("Loss")
+    ax1.grid(True, linewidth=0.2)
+
+    # 2) Decision boundary
+    ax2 = plt.subplot2grid((2, 3), (0, 1))
+    im = ax2.imshow(
+        zz,
+        origin="lower",
+        extent=(-grid_lim, grid_lim, -grid_lim, grid_lim),
+        vmin=0.0,
+        vmax=1.0,
+        aspect="auto",
+    )
+    ax2.scatter(X[:, 0], X[:, 1], c=y.ravel(), edgecolors="k")
+    ax2.set_title("Decision Boundary (Sigmoid Output)")
+    ax2.set_xlabel("X1")
+    ax2.set_ylabel("X2")
+    cbar = plt.colorbar(im, ax=ax2)
+    cbar.set_label("P(y=1)")
+
+    # 3) W1 heatmap
+    ax3 = plt.subplot2grid((2, 3), (0, 2))
+    imW1 = ax3.imshow(model.W1, aspect='auto')
+    ax3.set_title("W1 (2×3)")
+    ax3.set_xlabel("hidden units")
+    ax3.set_ylabel("inputs")
+    plt.colorbar(imW1, ax=ax3)
+
+    # 4) b1 bar
+    ax4 = plt.subplot2grid((2, 3), (1, 0))
+    ax4.bar(np.arange(model.b1.shape[1]), model.b1.ravel())
+    ax4.set_title("b1 (length 3)")
+    ax4.set_xlabel("hidden units")
+    ax4.set_ylabel("value")
+    ax4.grid(True, linewidth=0.3)
+
+    # 5) W2 heatmap
+    ax5 = plt.subplot2grid((2, 3), (1, 1))
+    imW2 = ax5.imshow(model.W2, aspect='auto')
+    ax5.set_title("W2 (3×1)")
+    ax5.set_xlabel("output unit")
+    ax5.set_ylabel("hidden units")
+    plt.colorbar(imW2, ax=ax5)
+
+    # 6) Error propagation to inputs: avg |dL/dx|
+    # Compute it for this epoch to show how gradients "flow back" to the inputs.
+    a2, z1, a1, z2 = model.forward(X)
+    grads = model.backprop(X, y, (a2, z1, a1, z2))
+    ax6 = plt.subplot2grid((2, 3), (1, 2))
+    ax6.bar([0, 1], grads['avg_dL_dx'])
+    ax6.set_xticks([0, 1])
+    ax6.set_xticklabels(['|∂L/∂x1|', '|∂L/∂x2|'])
+    ax6.set_title("Backprop to Inputs (avg |gradient|)")
+    ax6.grid(True, linewidth=0.3)
+
+    # Annotate current loss
+    if len(losses):
+        fig.text(0.02, 0.02, f"Current loss: {losses[-1]:.4f}", fontsize=11)
+
+    outpath = outdir / f"frame_{epoch:04d}.png"
+    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+    fig.savefig(outpath, dpi=140)
+    plt.close(fig)
+
+
+# -------------------------
+# Main routine
+# -------------------------
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--epochs", type=int, default=200, help="Number of training epochs")
+    parser.add_argument("--lr", type=float, default=0.1, help="Learning rate for gradient descent")
+    parser.add_argument("--seed", type=int, default=42, help="Random seed for initialization")
+    parser.add_argument("--out", type=str, default="frames_xor", help="Output folder for frames")
+    parser.add_argument("--grid_lim", type=float, default=1.5, help="Decision boundary plot extent")
+    args = parser.parse_args()
+
+    outdir = Path(args.out)
+    ensure_outdir(outdir)
+
+    # Data
+    X, y = make_xor_dataset()
+
+    # Model
+    model = TinyMLP(input_dim=2, hidden_dim=3, output_dim=1, seed=args.seed)
+
+    # Illustrate random initialization by saving epoch 0 frame before any training
+    losses: List[float] = []
+    plot_frame(epoch=0, losses=losses, X=X, y=y, model=model, outdir=outdir, seed_used=args.seed, grid_lim=args.grid_lim)
+
+    # Training loop (full-batch gradient descent)
+    for epoch in range(1, args.epochs + 1):
+        # Forward
+        y_pred, z1, a1, z2 = model.forward(X)
+        loss = model.loss_bce(y_pred, y)
+        losses.append(loss)
+
+        # Backprop
+        grads = model.backprop(X, y, (y_pred, z1, a1, z2))
+
+        # Update (GD)
+        model.step(grads, learning_rate=args.lr)
+
+        # Save a frame each epoch
+        plot_frame(epoch=epoch, losses=losses, X=X, y=y, model=model, outdir=outdir, seed_used=args.seed, grid_lim=args.grid_lim)
+
+    # Final hints for the student
+    print("Frames saved to:", str(outdir.resolve()))
+    print("\nCreate a video (1 fps) with ffmpeg:")
+    print(f"ffmpeg -r 1 -i {args.out}/frame_%04d.png -pix_fmt yuv420p xor_training.mp4")
+
+if __name__ == "__main__":
+    main()
