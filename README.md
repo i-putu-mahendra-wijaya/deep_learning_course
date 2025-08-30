@@ -1,4 +1,12 @@
-# Deep Learning
+# Deep Learning Course
+
+## Document History
+
+| Date | Version | Description | Author                 |
+| ---- |---------| ----------- |------------------------|
+| 2023-09-01 | 0.0     | Initial version | I Putu Mahendra Wijaya |
+
+---
 
 This repository contains code snippets used in my `Deep Learning` course
 
@@ -32,7 +40,29 @@ You need to install `pyenv` from its source.
 Please refer to the [official documentation](https://github.com/pyenv/pyenv#installation) for more details, 
 and follow the steps to install `pyenv` according to your operating system.
 
-On another hand, `virtualenv` is a tool that allows you to create isolated python environments.
+> **Note:** `pyenv` is not a python package manager. It's a python version manager.
+
+Verify that `pyenv` is installed by running the following command from your terminal:
+
+```shell
+pyenv --version # returns pyenv 2.5.5 in my machine. your output show a different version.
+```
+
+If you see the version number, then `pyenv` is installed successfully.
+
+Install python 3.11.5 or later using the following command:
+
+```shell
+pyenv install 3.11.5
+```
+
+Verify that Python 3.11.5 is installed by running the following command from your terminal:
+
+```shell
+pyenv versions # returns 3.11.5 and other versions installed on my machine.
+```
+
+Once finished istalling `pyenv`, we need to install `virtualenv` - a tool that allows you to create isolated python environments.
 It is useful to prevent packages from one project from affecting another project.
 
 Unlike `pyenv`, `virtualenv` can be installed from `pip` or `conda`. 
@@ -44,5 +74,36 @@ install `virtualenv`.
 Launch a terminal and run the following commands:
 
 ```shell
-mkdir -p ~/deep_learning_materials && cd ~/deep_learning_materials
+mkdir -p ~/deep_learning_course && cd ~/deep_learning_course
 ```
+The above command creates a folder named `deep_learning_course` in your home directory, 
+and then changes the current working directory to the newly created folder.
+
+> **Note:** `~/` is a shortcut for your home directory.
+> **Note:** once you are inside the `deep_learning_materials` folder, your terminal prompt will show the current working directory: `~/deep_learning_course`.
+
+## 3. Clone this repository
+
+within the `deep_learning_course` folder, run the following command:
+
+```shell
+git clone https://github.com/i-putu-mahendra-wijaya/deep_learning_course.git
+```
+
+Inside the `deep_learning_course` folder, you will find `.python-version` file. 
+This file is used by `pyenv` to automatically set the correct version of python for the project.
+
+## 4. Create a virtual environment
+
+Within the `deep_learning_course` folder, run the following command:
+
+```shell
+python3 -m virtualenv venv_deep_learning
+source venv_deep_learning/bin/activate
+```
+
+The above command creates a virtual environment named `venv_deep_learning` in the `deep_learning_course` folder.
+And then activates the virtual environment.
+
+> **Note:** once you have activated the virtual environment, your terminal prompt will show : `(venv_deep_learning) ~/deep_learning_course/:`.
+
