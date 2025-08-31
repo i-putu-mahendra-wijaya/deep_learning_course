@@ -107,3 +107,10 @@ And then activates the virtual environment.
 
 > **Note:** once you have activated the virtual environment, your terminal prompt will show : `(venv_deep_learning) ~/deep_learning_course/:`.
 
+## 5. Install the required packages
+
+From the root of the project folder, install the required packages by running the following command:
+
+```shell
+python3 -m pip install -r requirements.txt
+```
