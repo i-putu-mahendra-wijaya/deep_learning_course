@@ -49,7 +49,8 @@ WIDTH              = 128       # units per hidden layer
 INIT_STD_VANISH    = 0.1       # weight init std for vanishing model (sigmoid)
 INIT_STD_EXPLODE   = 1.0       # weight init std for exploding model (relu)
 SCALE_PER_LAYER    = 1.05       # multiply pre-activation z by this per layer (exploding model)
-LR                 = 1e-3
+VANISHING_LR                 = 1e-4
+EXPLODING_LR                 = 1e-4
 FRAME_DIR          = "frames_vegd"
 VIDEO_OUT          = "vanishing_exploding_gradient.mp4"
 
@@ -338,8 +339,8 @@ def main():
     model_e = DeepMLP(in_dim=2, out_dim=2, depth=DEPTH, width=WIDTH,
                       activation="relu", init_std=INIT_STD_EXPLODE, scale_per_layer=SCALE_PER_LAYER, name="explode")
 
-    opt_v = tf.keras.optimizers.SGD(learning_rate=LR)
-    opt_e = tf.keras.optimizers.SGD(learning_rate=LR)
+    opt_v = tf.keras.optimizers.SGD(learning_rate=VANISHING_LR)
+    opt_e = tf.keras.optimizers.SGD(learning_rate=EXPLODING_LR)
 
     # Storage: losses and gradient history
     losses_v, losses_e = [], []
