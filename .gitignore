@@ -1,7 +1,10 @@
+# IDE
 .idea/
 .cadence/
+
+# Virtual Environemtn
 venv_*/
 
-# ignore all media output
+# Media Output
 **/*.png
 **/*.mp4

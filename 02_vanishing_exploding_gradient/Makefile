@@ -1,0 +1,2 @@
+run_vegd:
+	python3 vanishing_exploding_gradient.py

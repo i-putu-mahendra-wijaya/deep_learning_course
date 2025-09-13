@@ -1,7 +1,68 @@
-# perceptron_animated.py
-# Rosenblatt's Perceptron with per-epoch frames and a final video
-# Author: your-name
-# License: MIT
+"""
+Rosenblatt Perceptron — Animated Training Demo
+----------------------------------------------
+
+This script provides a minimal, from-scratch implementation of the classic
+Rosenblatt Perceptron algorithm on a simple 2D, linearly separable dataset.
+It is intended as an educational illustration of how the perceptron learns
+a linear decision boundary over time.
+
+Features
+--------
+1. Synthetic dataset generation:
+   - Creates two Gaussian blobs in 2D (labels: -1 and +1).
+   - Data roughly linearly separable with adjustable spread and margin.
+
+2. Perceptron training loop:
+   - Online (sample-by-sample) updates following Rosenblatt’s rule.
+   - Tracks weights, bias, misclassification errors, perceptron loss,
+     and classification accuracy across epochs.
+
+3. Visualization:
+   - Saves one PNG frame per epoch showing:
+     * Scatter plot of training data.
+     * Current decision boundary and shaded decision regions.
+     * Training progress (errors, perceptron loss, accuracy curves).
+
+4. Video creation:
+   - Compiles saved frames into an MP4 (or GIF fallback) showing the evolution
+     of the decision boundary as training progresses.
+
+Usage
+-----
+Run from the command line with optional arguments:
+
+    python3 rosenblatt_perceptron.py --epochs 100 --lr 0.5 --n-per-class 200
+
+Or, you can also run from the command line using `make` (requires `make`) with preset defaults:
+
+    make run_perceptron
+
+Arguments include:
+    --epochs          Number of training epochs (default: 50)
+    --lr              Learning rate (default: 1.0)
+    --n-per-class     Samples per class (default: 100)
+    --seed            Random seed (default: 42)
+    --spread          Standard deviation of each blob (default: 0.8)
+    --margin          Distance between class centers (default: 2.0)
+    --outdir          Directory for output frames (default: perceptron_frames)
+    --clear-outdir    Clear output directory before saving new frames
+    --fps             Frames per second for video (default: 12)
+    --video           Output video filename (default: perceptron_training.mp4)
+    --no-shuffle      Disable shuffling between epochs
+
+Creating a video manually (alternative to built-in export):
+    ffmpeg -r 30 -i perceptron_frames/frame_%04d.png -pix_fmt yuv420p perceptron_training.mp4
+
+Dependencies
+------------
+- numpy
+- matplotlib
+- imageio (with ffmpeg support for MP4 export)
+
+This script is intended for learning and demonstration purposes.
+"""
+
 
 import argparse
 import shutil
