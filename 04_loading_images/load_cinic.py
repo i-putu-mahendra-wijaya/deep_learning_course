@@ -1,0 +1,131 @@
+"""
+This script demonstrates how to load the CINIC-10 dataset using the Keras API.
+It provides a simple example of how to load and preprocess the dataset for use in image classification tasks.
+
+History:
+- 2025 October 17 | I Putu Mahendra Wijaya | Initial creation
+
+"""
+import sys
+from typing import List
+import glob
+import os
+import tarfile
+import matplotlib.pyplot as plt
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
+from tensorflow.keras.utils import get_file
+from PIL import ImageFile
+import numpy as np
+
+def load_images_using_keras_api():
+    DATASET_URL: str = "https://datashare.ed.ac.uk/bitstream/handle/10283/3192/CINIC-10.tar.gz?sequence=4&isAllowed=y"
+    DATASET_NAME: str = "cinic-10"
+    FILE_EXTENSION: str = ".tar.gz"
+    FILE_NAME: str = ".".join([DATASET_NAME, FILE_EXTENSION])
+
+    # Download the dataset
+    # By default, the file will be downloaded to the cache dir (~/.keras/datasets)
+    dwn_file_loc: str = get_file(
+        origin=DATASET_URL,
+        fname=FILE_NAME,
+        extract=False
+    )
+
+    # Build path to the data directory based on the downloaded file location
+    data_dir, _ = dwn_file_loc.rsplit(
+        os.path.sep,
+        maxsplit=1
+    )
+    data_dir = os.path.sep.join([data_dir, DATASET_NAME])
+
+    # Only extract the dataset if it hasn't been extracted yet
+    if not os.path.exists(data_dir):
+        tar = tarfile.open(dwn_file_loc)
+        tar.extractall(path=data_dir)
+        tar.close()
+
+    # Load all image paths and print the number of images found
+    img_patterns: str = os.path.sep.join([data_dir, "**", "*.png"])
+    lst_img_paths: List = glob.glob(img_patterns, recursive=True)
+    print(f"Found {len(lst_img_paths)} images in {data_dir}")
+
+    # Load single image and print its metadata
+    sample_img: ImageFile = load_img(lst_img_paths[0])
+    print(
+        f"""
+        Sample image metadata:
+        ------------------------------------------------
+        
+        Image Type: {type(sample_img)}
+        Image Format: {sample_img.format}
+        Image Mode: {sample_img.mode}
+        Image Size: {sample_img.size}
+        """
+    )
+
+    # Convert image to numpy array
+    sample_img_arr: np.ndarray = img_to_array(sample_img)
+    print(
+        f"""
+        After converting to numpy array:
+        --------------------------------------------
+        
+        Image Type: {type(sample_img_arr)}
+        Image Array Shape: {sample_img_arr.shape}
+        """
+    )
+
+    # Display an image using matplotlib
+    plt.imshow(sample_img_arr / 255.0)
+    plt.axis("off")
+    plt.title(
+        "Sample Image",
+        fontsize=12
+    )
+    plt.show()
+
+    # Load a batch of images using `ImageDataGenerator`
+    datagen: ImageDataGenerator = ImageDataGenerator(
+        horizontal_flip=True,
+        rescale=1.0 / 255.0
+    )
+    batch_size: int = 10
+    img_gen: ImageDataGenerator = datagen.flow_from_directory(
+        directory=data_dir,
+        batch_size=batch_size,
+    )
+
+    for each_batch, _ in img_gen:
+        print(f"Batch shape: {each_batch.shape}")
+        plt.figure(figsize=(10, 10))
+
+        for each_idx, img in enumerate(each_batch, start=1):
+            ax = plt.subplot(5, 5, each_idx)
+            plt.imshow(img)
+            plt.axis("off")
+
+        plt.show()
+        break
+
+
+if __name__ == "__main__":
+
+    if len(sys.argv) > 1:
+
+        func_name: str = sys.argv[1]
+
+        if func_name == "load_images_using_keras_api":
+            load_images_using_keras_api()
+
+        else:
+            print(f"Function {func_name} not found.")
+
+    else:
+        print("Usage: python load_cinic.py <function_name>")
+        print(
+        """
+        Available functions:
+        * load_images_using_keras_api
+        """
+        )
