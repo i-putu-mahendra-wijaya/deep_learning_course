@@ -1,2 +1,5 @@
 load_images_using_keras:
 	python3 load_cinic.py load_images_using_keras_api
+
+load_images_using_tf_dataset:
+	python3 load_cinic.py load_images_using_tf_dataset
