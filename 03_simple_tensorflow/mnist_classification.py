@@ -1,7 +1,4 @@
 """
-Date: 2025 October 02
-Author: I Putu Mahendra Wijaya
-
 This script is a simple example of building a neural network using TensorFlow / Keras
 
 The task at hand can be categorized as a classification task.
@@ -13,6 +10,9 @@ This script demonstrates the following:
 2. Building a simple neural network using Keras
 3. Training the neural network
 4. Evaluating the neural network
+
+History:
+- 2025 October 02 | I Putu Mahendra Wijaya | Initial creation
 """
 
 from typing import Tuple

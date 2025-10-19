@@ -2,6 +2,10 @@
 .idea/
 .cadence/
 
+# Saved models
+**/*.hdf5
+**/*.keras
+
 # Virtual Environemtn
 venv_*/
 
