@@ -1,0 +1,2 @@
+visualize_model:
+	python3 visualize_model_architecture.py
