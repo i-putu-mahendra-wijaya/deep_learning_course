@@ -1,0 +1,2 @@
+run_multi_label:
+	python3 multi_label_classifier.py
