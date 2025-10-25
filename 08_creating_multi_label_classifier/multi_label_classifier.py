@@ -121,7 +121,7 @@ def build_network(
 
     input_layer: Input = Input(shape=(height, width, depth))
     conv_1: Conv2D = Conv2D(
-        filters=32,
+        filters=64,
         kernel_size=(3, 3),
         padding="same",
     )(input_layer)
@@ -129,7 +129,7 @@ def build_network(
     batch_norm_1: BatchNormalization = BatchNormalization(axis=-1)(activation_1)
 
     conv_2: Conv2D = Conv2D(
-        filters=32,
+        filters=64,
         kernel_size=(3, 3),
         padding="same",
     )(batch_norm_1)
@@ -142,7 +142,7 @@ def build_network(
     dropout_1: Dropout = Dropout(rate=0.25)(max_pool_1)
 
     conv_3: Conv2D = Conv2D(
-        filters=64,
+        filters=32,
         kernel_size=(3, 3),
         padding="same",
     )(dropout_1)
@@ -150,7 +150,7 @@ def build_network(
     batch_norm_3: BatchNormalization = BatchNormalization(axis=-1)(activation_3)
 
     conv_4: Conv2D = Conv2D(
-        filters=64,
+        filters=32,
         kernel_size=(3, 3),
         padding="same",
     )(batch_norm_3)
@@ -247,7 +247,7 @@ if __name__ == "__main__":
         images_ , labels_ = load_images_and_labels(
             image_paths=article_image_paths,
             styles=style_dict,
-            target_size=(64, 64),
+            target_size=(80, 60),
         )
 
         # Normalize the images, and multi-hot encode the labels
@@ -268,8 +268,8 @@ if __name__ == "__main__":
         # Build and compile the network
         pprint(f"building and compiling CNN model for multi-label classification")
         model: Model = build_network(
-            width=64,
-            height=64,
+            width=60,
+            height=80,
             depth=3,
             classes=len(mlb.classes_),
         )
