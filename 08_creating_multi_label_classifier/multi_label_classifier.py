@@ -27,6 +27,7 @@ from pathlib import Path
 from csv import DictReader
 import glob
 import numpy as np
+from matplotlib import pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MultiLabelBinarizer
 from tensorflow.keras.layers import *
@@ -167,13 +168,13 @@ def build_network(
     )(flatten_1)
     activation_5: ReLU = ReLU()(dense_1)
     batch_norm_5: BatchNormalization = BatchNormalization(axis=-1)(activation_5)
-    dropout_3: Dropout = Dropout(rate=0.25)(batch_norm_5)
+    dropout_3: Dropout = Dropout(rate=0.5)(batch_norm_5)
 
-    dense_2: Dense = Dense(
+    dense_4: Dense = Dense(
         units=classes
     )(dropout_3)
 
-    output: Activation = Activation("sigmoid")(dense_2)
+    output: Activation = Activation("sigmoid")(dense_4)
 
     return Model(
         inputs=input_layer
@@ -213,16 +214,16 @@ if __name__ == "__main__":
         in [*glob.glob(str(images_path_pattern))]
     ]
 
-    # We focus only `Watches` images for `Causal` , `Smart Causal`, and `Formal` usages
-    # suited fo `Men` and `Women`
+    # We focus only `Watches` images for "Casual", "Smart Casual" and "Sports" usages
+    article_type: str = "Watches"
+    genders: Set = {"Women", "Men"}
+    usages: Set = {"Casual", "Smart Casual", "Sports"}
+    pprint(f"reading images and labels for {len(image_paths)} images from {base_path},\nfiltering only {article_type} for {genders} gender and {usages} usages")
+
     with open(style_path, mode="r") as style_file_handle:
         dict_reader: DictReader = DictReader(style_file_handle)
 
         styles_ : List[Dict] = [*dict_reader]
-
-        article_type: str = "Watches"
-        genders: Set = {"Men", "Women"}
-        usages: Set = {"Causal", "Smart Causal", "Formal"}
 
         style_dict: Dict = {
             each_style["id"]: each_style
@@ -230,16 +231,93 @@ if __name__ == "__main__":
             if (
                 each_style["articleType"] == article_type
                 and
-                each_style["gender"] in genders
-                and
                 each_style["usage"] in usages
+                and
+                each_style["gender"] in genders
             )
         }
 
-        watch_image_paths: List[Path] = [
+        article_image_paths: List[Path] = [
             *filter(
                 lambda pth: str(pth).split(os.path.sep)[-1][:-4] in style_dict.keys(), image_paths)
         ]
 
-        pprint(style_dict, indent=4)
-        pprint(watch_image_paths, indent=4)
+        # load and resize the images into 64x64x3 shape using pre-defined function
+        pprint(f"processing {len(article_image_paths)} {article_type} images and labels")
+        images_ , labels_ = load_images_and_labels(
+            image_paths=article_image_paths,
+            styles=style_dict,
+            target_size=(64, 64),
+        )
+
+        # Normalize the images, and multi-hot encode the labels
+        pprint(f"normalizing {len(article_image_paths)} {article_type} images and convert labels into multi-hot encoded")
+        images_ = images_.astype("float32") / 255.0
+        mlb: MultiLabelBinarizer = MultiLabelBinarizer()
+        labels_ = mlb.fit_transform(labels_)
+
+        # Create train, test, and validation splits
+        pprint(f"splitting {len(article_image_paths)} {article_type} images and labels into train, test, and validation sets")
+        X_train, X_test, y_train, y_test = train_test_split(
+            images_, labels_, stratify=labels_, test_size=0.2, random_state=SEED
+        )
+        X_train, X_val, y_train, y_val = train_test_split(
+            X_train, y_train, stratify=y_train, test_size=0.2, random_state=SEED
+        )
+
+        # Build and compile the network
+        pprint(f"building and compiling CNN model for multi-label classification")
+        model: Model = build_network(
+            width=64,
+            height=64,
+            depth=3,
+            classes=len(mlb.classes_),
+        )
+
+        model.compile(
+            loss="binary_crossentropy",
+            optimizer="rmsprop",
+            metrics=["accuracy"],
+        )
+
+        # Train the model for 20 epochs, in batches of 64 images at a time
+        BATCH_SIZE: int = 64
+        EPOCHS: int = 20
+        pprint(f"training CNN model for multi-label classification for {EPOCHS} epochs, in batches of {BATCH_SIZE} images at a time")
+
+        model.fit(
+            X_train, y_train,
+            epochs=EPOCHS,
+            batch_size=BATCH_SIZE,
+            validation_data=(X_val, y_val),
+            verbose=2
+        )
+
+        # Evaluate the model on the test dataset
+        pprint(f"evaluating CNN model for multi-label classification on test dataset")
+        test_loss, test_acc = model.evaluate(X_test, y_test, batch_size=BATCH_SIZE)
+        pprint(f"test accuracy: {test_acc:.2f}")
+
+
+        # Use the model to make a prediction on a test image, displaying the probability of each label
+        pprint(f"making prediction on a test image")
+        test_image: np.ndarray = np.expand_dims(X_test[0], axis=0)
+        probabilities: np.ndarray = model.predict(test_image)[0]
+
+        for label, probability in zip(mlb.classes_, probabilities):
+            pprint(f"{label}: {probability:.2f}", indent=4)
+
+        # Compare the ground truth labels with the predicted labels
+        pprint(f"comparing ground truth labels with predicted labels")
+        ground_truth_labels: np.ndarray = np.expand_dims(y_test[0], axis=0)
+        ground_truth_labels_ = mlb.inverse_transform(ground_truth_labels)[0]
+        pprint(f"ground truth labels: {ground_truth_labels_}", indent=4)
+
+        # Showing the test image
+        plt.imshow(X_test[0])
+        plt.axis("off")
+        plt.title(
+            "Test Image"
+            , fontsize=12
+        )
+        plt.show()
