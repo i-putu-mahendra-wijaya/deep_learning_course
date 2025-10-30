@@ -1,16 +1,24 @@
 """
-This script is to demonstrate how to use TensorFlow Keras
-for building a simple binary classification model for detecting smile in photo
+Smile Detection using TensorFlow Keras
 
-We will build our model using the SMILEsmileD dataset:
-https://github.com/hromi/SMILEsmileD.git
+This script demonstrates how to build and train a simple binary classification
+model to detect whether a person is smiling in a given photo. The model is
+implemented using TensorFlow Keras and trained on the **SMILEsmileD** dataset.
 
-We assume that the dataset would be saved in
-"./keras/dataset/SMILEsmileD-master" folder
+Dataset:
+    The SMILEsmileD dataset can be obtained from:
+    https://github.com/hromi/SMILEsmileD.git
+
+    It is assumed that the dataset has been downloaded and extracted into:
+    `./keras/dataset/SMILEsmileD-master`
+
+References:
+    - Hromi, M. (2014). *SMILEsmileD Dataset*. GitHub repository.
 
 History:
-- 2025 October 23 | I Putu Mahendra Wijaya | Initial Creation
+    - 2025-10-23 | I Putu Mahendra Wijaya | Initial creation
 """
+
 
 from typing import Tuple, List
 from pprint import pprint
