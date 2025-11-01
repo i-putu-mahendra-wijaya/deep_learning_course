@@ -342,7 +342,7 @@ def main():
     opt_v = tf.keras.optimizers.SGD(learning_rate=VANISHING_LR)
     opt_e = tf.keras.optimizers.SGD(learning_rate=EXPLODING_LR)
 
-    # Storage: losses and gradient history
+    # Storage: losses and gradient model_history
     losses_v, losses_e = [], []
     grad_hist_v = []  # list of length EPOCHS; each item = list length depth of (width,) arrays
     grad_hist_e = []

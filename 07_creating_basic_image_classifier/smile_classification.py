@@ -240,6 +240,3 @@ if __name__ == "__main__":
     test_acc: {test_acc}
     """
     )
-
-
-

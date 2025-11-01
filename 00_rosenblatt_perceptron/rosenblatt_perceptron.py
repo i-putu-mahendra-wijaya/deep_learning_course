@@ -95,7 +95,7 @@ def make_2d_blobs(n_per_class=100, seed=42, spread=0.8, margin=2.0):
 def perceptron_train(X, y, epochs=50, lr=1.0, shuffle=True, seed=42):
     """
     Classic Rosenblatt training loop.
-    Returns history of (w, b, errors, perceptron_loss, accuracy).
+    Returns model_history of (w, b, errors, perceptron_loss, accuracy).
     """
     rng = np.random.default_rng(seed)
     n, d = X.shape
