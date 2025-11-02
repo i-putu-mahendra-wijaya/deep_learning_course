@@ -421,16 +421,13 @@ if __name__ == "__main__":
         metrics=["accuracy"],
     )
 
-    epoch: int = 0
-    val_accuracy: float = 0.0
-
     model_checkpoint_callback: ModelCheckpoint = ModelCheckpoint(
-        filepath=f"./model.{epoch:02d} - {val_accuracy:.2f}.keras",
+        filepath="./model.{epoch:02d} - {val_accuracy:.2f}.keras",
         save_weights_only=False,
         monitor="val_accuracy",
     )
 
-    EPOCHS: int = 100
+    EPOCHS: int = 5
     model.fit(
         train_dataset,
         epochs=EPOCHS,
