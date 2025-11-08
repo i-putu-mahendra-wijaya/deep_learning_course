@@ -154,7 +154,7 @@ def residual_module(
         or
         data.shape[-1] != filters
     )
-    if reduce:
+    if need_proj:
         # If reduce is True, we will apply a 1x1 convolution to reduce the number of channels
         shortcut: Conv2D = Conv2D(
             filters=filters,

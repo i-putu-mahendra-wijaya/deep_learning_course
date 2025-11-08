@@ -304,6 +304,45 @@ def augment(
     return img, label
 
 
+def show_augmented_grid(
+    image_paths: List[str],
+    n: int = 25,
+    rows: int = 5,
+    cols: int = 5,
+    title: str = "Training Augmentations (5×5)"
+) -> None:
+    """
+    Sample `n` images, apply `augment`, and display/save a rows×cols grid.
+
+    Saves a PNG named `augmented_grid_5x5.png` in the CWD.
+    """
+    # Build a tiny dataset from paths → (image,label) → (augmented_image,label)
+    ds = (
+        tf.data.Dataset.from_tensor_slices(image_paths)
+        .shuffle(buffer_size=len(image_paths), seed=SEED, reshuffle_each_iteration=True)
+        .map(load_image_and_label, num_parallel_calls=AUTOTUNE)
+        .map(augment, num_parallel_calls=AUTOTUNE)
+        .take(n)
+        .batch(n)
+    )
+
+    imgs, labels = next(iter(ds))  # imgs: (n, 64, 64, 3), labels: (n, C)
+
+    fig, axes = plt.subplots(rows, cols, figsize=(cols * 2.2, rows * 2.2))
+    fig.suptitle(title, fontsize=12)
+
+    for ax, img, lab in zip(axes.flat, imgs, labels):
+        ax.imshow(img.numpy())  # already in [0,1] float32
+        ax.set_axis_off()
+        # Optional: show class name above each tile
+        cls_idx = int(tf.argmax(lab).numpy())
+        ax.set_title(str(CLASSES[cls_idx]), fontsize=8)
+
+    plt.tight_layout()
+    plt.savefig("augmented_grid_5x5.png", dpi=150)
+    plt.close()
+
+
 def prepare_dataset(
         data_pattern: str
 ) -> tf.data.Dataset:
@@ -420,6 +459,16 @@ if __name__ == "__main__":
     plot_model_history(history, metric="accuracy", plot_name="Normal | Without Augmentation")
 
     # Prepare the training and test datasets WITH augmentation
+
+    # 🔎 Visualize 25 augmented samples in a 5×5 panel (saved as augmented_grid_5x5.png)
+    show_augmented_grid(
+        image_paths=train_paths,
+        n=25,
+        rows=5,
+        cols=5,
+        title="Training Augmentations (5×5)"
+    )
+
     train_dataset_aug: tf.data.Dataset = (
         prepare_dataset(train_paths)
         .map(augment, num_parallel_calls=AUTOTUNE)
