@@ -115,7 +115,7 @@ def build_network(
     X = MaxPooling2D(pool_size=(2, 2))(X)
     X = Dropout(0.25)(X)
     X = Conv2D(
-        filters=64,
+        filters=32,
         kernel_size=(3, 3),
         padding="same",
     )(X)
